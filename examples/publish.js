@@ -8,7 +8,7 @@ const {secureEvent} = require("../src/key.js");
 
 let pubkey = 'f54659feff021a5437745019cceb2c09b9da8cc21dfb29ec25d774210d067fd3';
 let privkey = 'e2a90b45181b6b08d3d42ca785509b6e8cd0e12480324291de95f7d023abdf2c';
-let client = new WebSocketClient(esserver);
+let client ;
 let event = {
     
   "ops": "C",
@@ -19,6 +19,15 @@ let event = {
   }
 }
 
-client.publish(secureEvent(event,privkey),function(message){
-    console.log(message);
-});
+
+async function initWebSocket (){
+    client = new WebSocketClient(esserver);
+    await client.connect();
+    client.publish(secureEvent(event,privkey),function(message){
+      console.log(message);
+    });
+}
+
+initWebSocket();
+
+

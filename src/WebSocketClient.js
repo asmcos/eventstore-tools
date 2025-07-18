@@ -10,7 +10,7 @@ if (typeof window !== 'undefined') {
 }
 
 class WebSocketClient {
-  constructor(url, options = {}) {
+   constructor(url, options = {}) {
     this.url = url;
     this.socket = null;
     this.connected = false;
@@ -29,64 +29,69 @@ class WebSocketClient {
     this.reconnectAttempts = 0;
     
     // 自动连接
-    this.connect();
+    
   }
   
   // 连接WebSocket服务器
-  connect() {
+  async connect() {
     if (this.socket && (this.socket.readyState === WebSocket.CONNECTING || this.socket.readyState === WebSocket.OPEN)) {
       return;
     }
-   
-    this.socket = new WebSocket(this.url);
-    
-    this.socket.onopen = () => {
-      this.connected = true;
-      this.reconnectAttempts = 0;
-      console.log('WebSocket连接已建立');
-      
-      // 重新发送所有待处理的订阅
-      this.subCallbacks.forEach((callback, reqId) => {
-        const { event } = callback;
-        this._sendRequest("SUB", reqId, event);
-      });
-    };
-    
-    this.socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        this._handleMessage(data);
-      } catch (error) {
-        console.error('解析WebSocket消息失败:', error);
-      }
-    };
-    
-    this.socket.onclose = (event) => {
-      this.connected = false;
-      console.log(`WebSocket连接已关闭 (代码: ${event.code}, 原因: ${event.reason})`);
-      
-      // 清除所有请求回调
-      this.reqCallbacks.forEach((callback, reqId) => {
-        if (callback.onClose) {
-          callback.onClose(event);
-        }
-      });
-      this.reqCallbacks.clear();
-      
-      // 自动重连逻辑
-      if (this.options.autoReconnect && 
-          this.reconnectAttempts < this.options.maxReconnectAttempts) {
-        this.reconnectAttempts++;
-        console.log(`尝试重新连接 (${this.reconnectAttempts}/${this.options.maxReconnectAttempts})...`);
-        setTimeout(() => this.connect(), this.options.reconnectInterval);
-      }
-    };
-    
-    this.socket.onerror = (error) => {
-      console.error('WebSocket错误:', error);
-    };
+    this.connectionPromise = new Promise((resolve, reject) => {
+	    this.socket = new WebSocket(this.url);
+	    
+	    this.socket.onopen = () => {
+	      this.connected = true;
+	      this.reconnectAttempts = 0;
+	      console.log('WebSocket连接已建立');
+	      
+	      // 重新发送所有待处理的订阅
+	      this.subCallbacks.forEach((callback, reqId) => {
+		const { event } = callback;
+		this._sendRequest("SUB", reqId, event);
+	      });
+	      resolve();
+	    };
+	    
+	    this.socket.onmessage = (event) => {
+	      try {
+		const data = JSON.parse(event.data);
+		this._handleMessage(data);
+	      } catch (error) {
+		console.error('解析WebSocket消息失败:', error);
+	      }
+	    };
+	    
+	    this.socket.onclose = (event) => {
+	      this.connected = false;
+	      console.log(`WebSocket连接已关闭 (代码: ${event.code}, 原因: ${event.reason})`);
+	      
+	      // 清除所有请求回调
+	      this.reqCallbacks.forEach((callback, reqId) => {
+		if (callback.onClose) {
+		  callback.onClose(event);
+		}
+	      });
+	      this.reqCallbacks.clear();
+	      
+	      // 自动重连逻辑
+	      if (this.options.autoReconnect && 
+		  this.reconnectAttempts < this.options.maxReconnectAttempts) {
+		this.reconnectAttempts++;
+		console.log(`尝试重新连接 (${this.reconnectAttempts}/${this.options.maxReconnectAttempts})...`);
+		setTimeout(() => this.connect(), this.options.reconnectInterval);
+	      }
+	      reject("onclose");
+	    };
+	    
+	    this.socket.onerror = (error) => {
+	      console.error('WebSocket错误:', error);
+	      reject("onerror");
+	    };
+	  
+    });
+    return this.connectionPromise;
   }
-  
   // 处理接收到的消息
   _handleMessage(data) {
     // 检查是否有请求ID
