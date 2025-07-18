@@ -101,7 +101,12 @@ function hashMessage(message) {
     if (typeof message === 'string') {
         message = new TextEncoder().encode(message);
     }
-    return sha256(message);
+    return bytesToHex(sha256(message));
+}
+
+function signStr(objStr,privateKey){
+    const signature = schnorr.sign(objStr, privateKey);
+    return bytesToHex(signature);
 }
 
 /**
@@ -112,9 +117,9 @@ function hashMessage(message) {
  */
 function signMessage(message, privateKey) {
     const messageHash = hashMessage(message);
-    const signature = schnorr.sign(messageHash, privateKey);
-    return bytesToHex(signature);
+    return signStr(objStr,privateKey);
 }
+
 
 /**
  * 验证消息签名
@@ -141,6 +146,17 @@ function verifyMessage(message, signature, publicKey) {
     return schnorr.verify(sigBytes, messageHash, pubkeyBytes);
 }
 
+function secureEvent(event,privkey){
+
+    if (!event.created_at) event.created_at = Math.floor(Date.now() / 1000);
+	
+    let serializeEvent = JSON.stringify(event, Object.keys(event).sort());
+    let eventid = hashMessage(serializeEvent);
+    event.id = eventid;
+    
+    event.sig = signStr(eventid,privkey);
+    return event;    	    
+}
 // 导出核心功能
 module.exports = {
     generateSecretKey,
@@ -153,6 +169,7 @@ module.exports = {
     signMessage,
     verifyMessage,
     hashMessage,
+    secureEvent,
     encodeBech32,
     decodeBech32
 };
