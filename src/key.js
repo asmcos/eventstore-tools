@@ -277,6 +277,7 @@ if (require.main === module) {
     const originalEvent = {
         ops: "C",
         code: 100,
+        user: publicKey,
         data: {
             email: "test@example.com",
             content: "这是一个测试事件"
@@ -292,17 +293,18 @@ if (require.main === module) {
         id: signedEvent.id,
         sig: signedEvent.sig,
         created_at: signedEvent.created_at,
+        user:signedEvent.user,
         data: signedEvent.data
     });
 
     // 验证事件签名
     console.log('\n=== 签名验证 ===');
-    console.log('使用Hex公钥验证:', verifyEvent(signedEvent, publicKey) ? '通过' : '失败');
+    console.log('使用Hex公钥验证:', verifyEvent(signedEvent, signedEvent.user) ? '通过' : '失败');
     console.log('使用Bech32公钥验证:', verifyEvent(signedEvent, publicKeyBech32) ? '通过' : '失败');
     
     // 测试篡改事件
     console.log("篡改后验证测试:")
     const tamperedEvent = { ...signedEvent };
     tamperedEvent.data.content = "篡改后的内容";
-    console.log('篡改后验证:', verifyEvent(tamperedEvent, publicKey) ? '通过' : '失败');
+    console.log('篡改后验证:', verifyEvent(tamperedEvent, signedEvent.user) ? '通过' : '失败');
 }
