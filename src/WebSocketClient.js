@@ -175,8 +175,7 @@ class WebSocketClient {
     if (this.subCallbacks.has(reqId)) {
       // 发送取消订阅请求
       const callback = this.subCallbacks.get(reqId);
-      const event = callback.event || reqId; // 回退到reqId如果事件不存在
-      this._sendRequest("UNSUB", reqId, event);
+      this._sendRequest("UNSUB", reqId, {});
       
       // 删除回调
       this.subCallbacks.delete(reqId);
