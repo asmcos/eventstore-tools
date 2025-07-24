@@ -1,7 +1,10 @@
+const fs = require('fs').promises;
+const path = require('path');
+
 const {esserver} = require("./config.js");
 const {WebSocketClient } = require("../src/WebSocketClient.js");
 const {secureEvent} = require("../src/key.js");
-const {PERMISSIONS} = require("../src/common.js");
+
 //生成的私钥 (Hex): e2a90b45181b6b08d3d42ca785509b6e8cd0e12480324291de95f7d023abdf2c
 //生成的公钥 (Hex): f54659feff021a5437745019cceb2c09b9da8cc21dfb29ec25d774210d067fd3
 //生成的私钥 (Bech32): esec1u25sk3gcrd4s35759jnc25ymd6xdpcfysqey9yw7jhmaqgatmukqyljrgp
@@ -9,25 +12,30 @@ const {PERMISSIONS} = require("../src/common.js");
 
 let pubkey = 'f54659feff021a5437745019cceb2c09b9da8cc21dfb29ec25d774210d067fd3';
 let privkey = 'e2a90b45181b6b08d3d42ca785509b6e8cd0e12480324291de95f7d023abdf2c';
-let adminpubkey = '2bc571b20f7dc9734aeca6a1b0c6e5990465f7e19422ecfa8b8cb38f0cec26c1';
-let adminprivkey = '142cdc768c6aa263a522fcae5b30cb24290af8bd1641650dec64590246b803ea';
+
+
+let filename = "dddepth-281.jpg";
 let client ;
 let event = {
     
   "ops": "C",
-  "code": 300,
-  "user": adminpubkey,
+  "code": 400,
+  "user": pubkey,
   "data": {
-    "userId": pubkey,
-    "permissionValue":PERMISSIONS.CREATE_EVENTS|PERMISSIONS.UPLOAD_FILES,
-  }
+     fileName: filename,
+  },
+  "tags":[['t','upload_file'],],
 }
 
 
 async function initWebSocket (){
     client = new WebSocketClient(esserver);
     await client.connect();
-    client.publish(secureEvent(event,adminprivkey),function(message){
+    const fileData = await fs.readFile(path.join(__dirname, './',filename));
+    const sevent = secureEvent(event,privkey);
+    sevent.data.fileData = fileData;
+    
+    client.publish(sevent,function(message){
       console.log(message);
     });
 }
