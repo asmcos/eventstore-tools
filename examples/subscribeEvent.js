@@ -20,12 +20,17 @@ async function initWebSocket (){
     await client.connect();
     client.subscribe(event,function(message){
       console.log(message[2]);
-      if (message[2] == "EOSE") client.unsubscribe(message[1]);
+      //if (message[2] == "EOSE") client.unsubscribe(message[1]);
     });
 
     let event1 = {...event,tags:[ [ 't', 'blog' ],]}
     client.subscribe(event1,function(message){
       console.log(message[2]);
+      if (message[2] == "EOSE") client.unsubscribe(message[1]);
+    });
+    let event2 = {...event,user:pubkey};
+    client.subscribe(event2,function(message){
+      console.log(message[1],message[2]);
       if (message[2] == "EOSE") client.unsubscribe(message[1]);
     });
 
