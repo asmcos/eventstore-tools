@@ -25,6 +25,7 @@ async function initWebSocket (){
     await client.connect();
     client.publish(secureEvent(event,privkey),function(message){
       console.log(message);
+      client.close();
     });
 }
 
