@@ -82,7 +82,7 @@ class WebSocketClient {
 		      this.reconnectAttempts < this.options.maxReconnectAttempts) {
             this.reconnectAttempts++;
             console.log(`尝试重新连接 (${this.reconnectAttempts}/${this.options.maxReconnectAttempts})...`);
-		        setTimeout(() => this.connect(), this.options.reconnectInterval);
+		        setTimeout(() => this.connect().catch(error => {}), this.options.reconnectInterval);
 	      }
 	      reject("onclose");
 	    };
