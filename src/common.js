@@ -16,6 +16,7 @@ const defaultPermissionConfigs = {
              PERMISSIONS.MANAGE_EVENTS |
              PERMISSIONS.CREATE_EVENTS |
              PERMISSIONS.READ_OWN_EVENTS |
+             PERMISSIONS.UPLOAD_FILES|
              PERMISSIONS.READ_PUBLIC_EVENTS,
       
       user: PERMISSIONS.CREATE_EVENTS |
