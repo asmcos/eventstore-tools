@@ -138,6 +138,7 @@ class WebSocketClient {
         reqId,
         event,
       ]);
+      
       this.socket.send(message);
       return true;
     } catch (error) {
@@ -162,32 +163,34 @@ class WebSocketClient {
   
   // 订阅主题
   subscribe(event, callback) {
-    const reqId = this._generateReqId();
     
     if (Array.isArray(event)) {
  
       event.forEach(subEvent => {
-        
+        let reqIds = []
+        const reqId = this._generateReqId();
         const sent = this._sendRequest("SUB", reqId, subEvent);
-        
+        reqIds.push(reqIds)
         if (sent) {
           // 存储每个子事件的回调（可根据需求决定是否共享同一个callback）
           this.subCallbacks.set(reqId, callback);
     
         }
+        return reqIds;
       });
     } else {
-
+      const reqId = this._generateReqId();
       const sent = this._sendRequest("SUB", reqId, event);
     
       if (sent) {
         // 存储订阅回调
         this.subCallbacks.set(reqId, callback);
       }
+      return reqId;
     }  
 
     
-    return reqId;
+    
   }
   
   // 取消订阅
